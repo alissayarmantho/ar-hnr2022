@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!--
+/*
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Building an augmented reality application with the WebXR Device API
+    </title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css"
+    />
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+
+    <!-- three.js -->
+    <script src="https://unpkg.com/three@0.126.0/build/three.js"></script>
+    <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../shared/app.css" />
+    <script src="../shared/utils.js"></script>
+  </head>
+  <body>
+    <div id="tapping">
+      <div id="enter-ar-info" class="mdc-card demo-card">
+        <h2>AR with WebXR</h2>
+        <p>
+          This is an experiment using augmented reality features with the WebXR
+          Device API. Upon entering AR, you will <b>not</b> be able to <b>go back</b> to this page.
+          </br></br>
+          You can refresh the page if you want to go back instead.
+          </br></br>
+          <b>Note on uploading files:</b>
+        </br></br>
+          Please upload .gltf file of your object model which is fully embedded (not separated)</br></br>
+          For the object name, please input the object name of the model inside your .gltf file</br></br>
+          If there are multiple objects, either join them as a group and input the resulting object name
+          or input the object name that you want to show in the AR.</br></br>
+        </p>
+
+        <!-- Starting an immersive WebXR session requires user interaction. Start the WebXR experience with a simple button. -->
+        <a id="enter-ar" class="mdc-button mdc-button--raised mdc-button--accent button-style">
+          Start augmented reality
+        </a>
+        </br>
+        <div id="form">
+            <h3>Upload Files<h3/>
+            <input type="file" id="files" multiple /><br /><br />
+            Object name: 
+            <input type="text" id="obj-name" name="object name" onchange="onchange()">
+            <button id="send" class="mdc-button mdc-button--raised mdc-button--accent">Upload</button>
+            <p id="uploading"></p>
+            <progress value="0" max="100" id="progress"></progress>
+        </div>
+        
+      </div>
+
+      <div id="unsupported-info" class="mdc-card demo-card">
+        <h2>Unsupported Browser</h2>
+        <p>
+          Your browser does not support AR features with WebXR.
+        </p>
+      </div>
+      
+
+      <div id="stabilization"></div>
+
+    </div>
+    <div id="mySidenav" class="sidenav-container">
+
+      <span class="drawer-close-button">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+      </span>
+
+      <div id="selection">
+        <ul id="list">
+        </ul>
+      </div>
+
+    
+    </div>
+    
+    <div class="backdrop-container" id="backdrop"></div>
+    
+    <nav id="burger">
+      <span onclick="openNav()" class="mobile-nav-open-icon">&#9776;</span>
+    </nav>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-app.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-firestore.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-storage.js"></script>
+
+    <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        // Insert your firebase config here
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
+    <script type="module" src="app.js"></script>
+    <script>
+      var files = [];
+      document.getElementById("files").addEventListener("change", function (e) {
+        files = e.target.files;
+      });
+    </script>
+    <script>
+      document.getElementById("send").addEventListener("click", function () {
+        //checks if files are selected
+        if (files.length != 0) {
+          //Loops through all the selected files
+          for (let i = 0; i < files.length; i++) {
+            //create a storage reference
+            var storage = firebase.storage().ref(files[i].name);
+            console.log(files[i].name);
+
+            //upload file
+            var upload = storage.put(files[i]);
+
+            //update progress bar
+            upload.on(
+              "state_changed",
+              function progress(snapshot) {
+                var percentage =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                document.getElementById("progress").value = percentage;
+              },
+
+              function error(err) {
+                console.log(err);
+                alert("error uploading file");
+              },
+
+              function complete() {
+                // get object name input by user
+                var name = document.getElementById("obj-name").value
+
+                document.getElementById(
+                  "uploading"
+                ).innerHTML += `${files[i].name} uploaded <br />`;
+                storage.getDownloadURL().then((url) => {
+                  console.log(url);
+                  var db = firebase.firestore();
+                  db.collection("userObjects").add({
+                    name: name,
+                    link: url,
+                  });
+                });
+              }
+            );
+          }
+        } else {
+          alert("No file chosen");
+        }
+      });
+    </script>
+  </body>
+  <script>
+    function openNav() {
+        document.getElementById('mySidenav').style.width = '100%' //opens side navbar by 70 percent
+        document.getElementById('backdrop').style.display = 'block' //displays overlay
+        document.getElementById('burger').style.display = 'none'
+        document.getElementById('tapping').style.height = '80%';
+      }
+
+      function closeNav() {
+        document.getElementById('mySidenav').style.width = '0'
+        document.getElementById('backdrop').style.display = 'none'
+        document.getElementById('burger').style.display = 'flex'
+        document.getElementById('tapping').style.height = '100%';
+      }
+  </script>
+</html>
