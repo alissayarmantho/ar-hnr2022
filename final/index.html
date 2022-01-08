@@ -34,6 +34,7 @@
 
     <link rel="stylesheet" type="text/css" href="../shared/app.css" />
     <script src="../shared/utils.js"></script>
+    <script src="../config.js"></script>
   </head>
   <body>
     <div id="tapping">
@@ -109,11 +110,10 @@
     <!-- TODO: Add SDKs for Firebase products that you want to use -->
     <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-storage.js"></script>
 
-    <script>
+    <script type="module">
       // Your web app's Firebase configuration
-      var firebaseConfig = {
-        // Insert your firebase config here
-      };
+      import firebaseConfig from "../config.js";
+      
       // Initialize Firebase
       firebase.initializeApp(firebaseConfig);
     </script>

@@ -6,7 +6,7 @@ To run this project you will need:
 
 - [Web Server for Chrome](https://chrome.google.com/webstore/detail/web-server-for-chrome/ofhbbkphhbklhfoeikjpcbhemlocgigb?hl=en)
 
-- Firebase Config
+- Make a new file called config.js in the root folder and add your firebase config as a constant `firebaseConfig` and export it as a default
 
 How to start:
 

@@ -25,9 +25,7 @@ import {
   getDocs,
 } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  // Insert your firebase config here
-};
+import firebaseConfig from "../config.js";
 
 const app = initializeApp(firebaseConfig);
 window.rawObjectData = [];
