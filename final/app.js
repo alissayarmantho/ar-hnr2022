@@ -84,14 +84,81 @@ function addNewButtons(src, index) {
   btn.value = index;
   btn.classList.add("imgbtn");
   btn.classList.add("styled");
-  //can add button onclick event
-  var img = document.createElement("img");
-  img.src = src;
-  img.width = 100;
-  img.height = 100;
-  btn.appendChild(img);
+  // Use this if you want a question mark instead
+  //  var img = document.createElement('img')
+  //  img.src = src
+  //  img.width = 100
+  //  img.height = 100
+  //  btn.appendChild(img)
+  var newCanvas = document.createElement("canvas");
+
+  var renderer = new THREE.WebGLRenderer({
+    alpha: true,
+    preserveDrawingBuffer: true,
+    canvas: newCanvas,
+    autoClear: false,
+  });
+  document.body.appendChild(renderer.domElement);
+  newCanvas.width = 125;
+  newCanvas.height = 125;
+  btn.appendChild(newCanvas);
   li.appendChild(btn);
   document.getElementById("list").appendChild(li);
+
+  var camera = new THREE.PerspectiveCamera();
+  camera.aspect = 1;
+  camera.position.set(0, 0, 2);
+  camera.lookAt(0, 0, 0);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  renderer.setSize(125, 125, false);
+  controls.update();
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // required if controls.enableDamping or controls.autoRotate are set to true
+    controls.update();
+
+    renderer.render(scene, camera);
+  }
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf9f9f9);
+
+  new THREE.GLTFLoader().load(
+    window.rawObjectData[index].link,
+    (gltf) => {
+      var mroot = gltf.scene;
+      var bbox = new THREE.Box3().setFromObject(mroot);
+      var cent = bbox.getCenter(new THREE.Vector3());
+      var size = bbox.getSize(new THREE.Vector3());
+
+      //Rescale the object to normalized space
+      var maxAxis = Math.max(size.x, size.y, size.z);
+      mroot.scale.multiplyScalar(1.0 / maxAxis);
+      bbox.setFromObject(mroot);
+      bbox.getCenter(cent);
+      bbox.getSize(size);
+      //Reposition to 0,halfY,0
+      mroot.position.copy(cent).multiplyScalar(-1);
+      mroot.position.y -= size.y * 0.5;
+
+      scene.add(mroot);
+    },
+    undefined,
+    function (error) {
+      console.error(error);
+    }
+  );
+
+  const light1 = new THREE.PointLight(0xfcf9d9, 1, 100);
+  light1.position.set(0, 0, -10);
+  scene.add(light1);
+
+  const light2 = new THREE.PointLight(0xfcf9d9, 1, 100);
+  light1.position.set(0, 0, 10);
+  scene.add(light2);
+
+  animate();
 }
 
 /**

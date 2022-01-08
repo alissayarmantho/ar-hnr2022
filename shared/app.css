@@ -25,6 +25,10 @@ body {
   background-color: rgb(69, 90, 100);
 }
 
+canvas {
+  border-radius: 10px;
+}
+
 div.demo-card {
   width: 80vw;
   height: 150vw;
@@ -177,9 +181,9 @@ li {
 .styled {
   border: 0;
   line-height: 2.5;
-  padding: 10px 20px;
   font-size: 1rem;
   margin: 0px 10px;
+  padding: 0px;
   text-align: center;
   color: #fff;
   text-shadow: 1px 1px 1px #000;
@@ -203,6 +207,7 @@ li {
 
 .active {
   border: 2px solid black;
+  padding: 0px;
 }
 
 .wrap {
